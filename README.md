@@ -1,165 +1,61 @@
-#Event Registration System for Laravel 4
+<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
-A package that provides a way of creating events, venues, attendees and instructors. This documentation is still a work in progress. 
+<p align="center">
+<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
+<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
+<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
+<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+</p>
 
-## Set up
+## About Laravel
 
-Install the [package](https://packagist.org/packages/spoolphiz/events) using composer and add the following entry to the array of service providers found in app/config/app.php:
+Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
 
-`'Spoolphiz\Events\EventsServiceProvider',`
+- [Simple, fast routing engine](https://laravel.com/docs/routing).
+- [Powerful dependency injection container](https://laravel.com/docs/container).
+- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
+- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
+- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
+- [Robust background job processing](https://laravel.com/docs/queues).
+- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
 
-Then, update the autoload file: 
+Laravel is accessible, powerful, and provides tools required for large, robust applications.
 
-`composer.phar dump-autoload`
+## Learning Laravel
 
-Finally, run all the migrations to create the necessary database tables:
+Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
 
-`php artisan migrate --package=spoolphiz/events`
+You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
 
-##Usage
+If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
 
-This package was written with the intention of being used as part of a RESTFul API. Here are some examples:
+## Laravel Sponsors
 
-###API resource routes
+We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
 
+### Premium Partners
 
+- **[Vehikl](https://vehikl.com)**
+- **[Tighten Co.](https://tighten.co)**
+- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
+- **[64 Robots](https://64robots.com)**
+- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
+- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
+- **[Redberry](https://redberry.international/laravel-development)**
+- **[Active Logic](https://activelogic.com)**
 
-###Working with venues
+## Contributing
 
-It's reocmmended that the models are interacted with via their corresponding repository classes. This means injecting the Venue repository into your controller:
+Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
 
-```php
-use \Input;
-use \Response;
-use Spoolphiz\Events\Interfaces\VenueRepository;
+## Code of Conduct
 
-class ApiVenuesController extends ApiBaseController {
+In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
 
-	protected $venue;
-	
-	public function __construct(VenueRepository $venue)
-	{
-		$this->venue = $venue;
-	}
-...
-}
-```
+## Security Vulnerabilities
 
-Now lets create a controller function for adding a new venue:
+If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
 
-```php
-/**
- * Create a new venue
- *
- * @return Response (json)
- */
-public function postCreate()
-{	
-	$venue = $this->venue->newVenue();
-	$inputData = Input::get();
-	$venue->fill($inputData);
-	$venue->validate();
-	
-	//since validation passed, lets geocode this address
-	$venue->geocode();
+## License
 
-	if (!$venue->save())
-	{
-		App::abort(422, 'Resource failed to create');
-	}
-
-	return Response::json($venue->toArray());
-}
-
-```
-
-Updating the venue is very similar:
-
-```php
-/**
- * Update a venue's info
- *
- * @return Response (json)
- */
-public function putSingle($id)
-{	
-	$venue = $this->venue->find($id);
-	$venue->fill(Input::get());
-	$venue->validate();
-
-	$venue->geocode();
-
-	if (!$venue->save())
-	{
-		App::abort(422, 'Resource failed to updated');
-	}
-
-	return Response::json($venue->toArray());
-}
-```
-
-...how about getting a list of all venues?
-
-```php
-/**
- * Get a listing of venues
- *
- * @return Response (json)
- */
-public function getList()
-{		
-	$filters = Input::get();
-	
-	if( empty($filters) )
-	{
-		$data = $this->venue->all();
-	}
-	else
-	{
-		$data = $this->venue->filtered($this->parseFilters($filters));
-	}
-	
-	
-	if( empty($data) )
-	{
-		$data = array();
-	}
-	elseif( is_object($data) ) {
-		$data = $data->toArray();
-	}
-	
-	return Response::json($data);
-}
-```
-
-Notice there is a check for Input data at the beginning of getList(), searching/filtering data is covered below in the section "Searching/Filtering Data"
-
-
-###Searching/Filtering Data
-
-The following functionality is available to be passed in as filter fields. If working in a single page app, you should JSON.stringify() each of the filter variables. This means you'll also need to decode the filter fields on the server side. If you're not using this package as part of an API you can simply create an associative array with the same structure as below and pass that to the filtered() function of each resource repository (venues, events, users, attendees).
-
-```javascript
-{
-	total : 0|1 //returns the count of events matching the rest of the filter criteria
-	filter : { 
-				type : "AND"|"OR", //it is currently not possible to mix AND and OR in the same query
-				filter : [
-							{
-								name : "events.start_date",
-								operator: ">=" //possible operators are: =, !=, <, <=, >, >=, in, not in, starts with, ends with, contains, not contains, search
-								value : "2014-02-02"
-							}
-							//add more field queries here
-						]
-			},
-	sort : [
-				{field : "venues.city", dir : "ASC"} //you can add more fields to sort by, format is table_name.field_name
-			],
-	fields : ["events.*", "venues.city"], //this should contain an array of fields to return in format of table_name.field_name or table_name.*
-	limit : 10, //number of results you want
-	page : 0 //0 based page number for results that contain more records than requested in the 'limit' field above
-}
-```
-
-
+The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
